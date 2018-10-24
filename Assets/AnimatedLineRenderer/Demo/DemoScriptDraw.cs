@@ -10,6 +10,8 @@ namespace DigitalRuby.AnimatedLineRenderer
         private bool firing;
         private int currentFiring = 0;
 
+        private bool stop = false;
+
         private void Start()
         {
 
@@ -54,6 +56,8 @@ namespace DigitalRuby.AnimatedLineRenderer
             lineRenderer.SetPosition(0, source);
             lineRenderer.SetPosition(1, target);
 
+
+
             //LineRenderer lineRenderer = GetComponent<LineRenderer>();
             /*
             for (int i = 0; i < lengthOfLineRenderer; i++)
@@ -81,9 +85,20 @@ namespace DigitalRuby.AnimatedLineRenderer
             
             //Your Function You Want to Call
             yield return new WaitForSeconds(waitTime);
+
             for (int i = 0; i < AnimatedLine.alLetras.Count; i++)
             {
-                DrawManual(new Vector3(0,0),AnimatedLine.alLetras[i].posicion);
+                
+
+                print("-> " + AnimatedLine.alLetras[i].letra);
+
+                for (int h = 0; h < AnimatedLine.alLetras[i].alLetrasRelaciones.Count; h++)
+                {
+                    print("     ->" + AnimatedLine.alLetras[i].alLetrasRelaciones[h].letra);
+
+                    DrawManual(AnimatedLine.alLetras[i].posicion, AnimatedLine.alLetras[i].alLetrasRelaciones[h].posicion);
+                }
+
             }
             //DrawManual();
 
@@ -117,6 +132,12 @@ namespace DigitalRuby.AnimatedLineRenderer
 
         }
 
+        public void OnButton()
+        {
+            stop = true;
+            Debug.Log("Button was pressed!");
+        }
+
         public bool Fire(Vector3 source, Vector3 target, int cF)
         {
             if (firing)
@@ -133,29 +154,34 @@ namespace DigitalRuby.AnimatedLineRenderer
 
         private void Update()
         {
-            if (AnimatedLine == null)
+            if (!stop)
             {
-                return;
-            }
-            else if (Input.GetMouseButton(0))
-            {
-                Vector3 pos = Input.mousePosition;
+                if (AnimatedLine == null)
+                {
+                    return;
+                }
+                else if (Input.GetMouseButtonUp(0))
+                {
+                    Vector3 pos = Input.mousePosition;
 
-                pos = Camera.main.ScreenToWorldPoint(new Vector3(pos.x, pos.y, AnimatedLine.transform.position.z));
+                    pos = Camera.main.ScreenToWorldPoint(new Vector3(pos.x, pos.y, AnimatedLine.transform.position.z));
 
-                AnimatedLine.Enqueue(pos);
-            }
-            else if (Input.GetKey(KeyCode.R))
-            {
-                AnimatedLine.ResetAfterSeconds(0.5f, null);
-            }
-            else if (Input.GetKey(KeyCode.Q))
-            {
+                    /*Omitir Area del Boton Terminar*/
+                    if( !(pos.x > 10.72 && pos.y < -7.82))
+                        AnimatedLine.Enqueue(pos);
+                }
+                else if (Input.GetKey(KeyCode.R))
+                {
+                    AnimatedLine.ResetAfterSeconds(0.5f, null);
+                }
+                else if (Input.GetMouseButtonUp(1))
+                {
 
-                
-                StartCoroutine(LateStart(1f));
-                //StopCoroutine("LateStart");
-                //AnimatedLine.ResetAfterSeconds(0.5f, null);
+
+                    StartCoroutine(LateStart(1f));
+                    //StopCoroutine("LateStart");
+                    //AnimatedLine.ResetAfterSeconds(0.5f, null);
+                }
             }
         }
     }

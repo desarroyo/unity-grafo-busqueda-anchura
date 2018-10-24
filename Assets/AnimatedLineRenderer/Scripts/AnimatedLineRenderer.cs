@@ -36,10 +36,13 @@ namespace DigitalRuby.AnimatedLineRenderer
         [Tooltip("Order in sort layer")]
         public int OrderInSortLayer = 1;
 
+        private HashSet<String> hmRelaciones;
 
         public List<Letra> alLetras = null;
+        public List<Letra> alLetrasHijas = null;
         private int sigLetra = 1;
 
+        private int lastLetra = -1;
 
         public struct Letra
         {
@@ -47,6 +50,7 @@ namespace DigitalRuby.AnimatedLineRenderer
             public Vector3 posicion;
             public TextMesh txtLetra;
             public TextMesh txtLetraPunto;
+            public List<Letra> alLetrasRelaciones;
         }
 
         public struct QueueItem
@@ -123,7 +127,7 @@ namespace DigitalRuby.AnimatedLineRenderer
             current.ElapsedSeconds = Mathf.Min(current.TotalSeconds, current.ElapsedSeconds + Time.deltaTime);
             float lerp = current.TotalSecondsInverse * current.ElapsedSeconds;
             EndPoint = Vector3.Lerp(prev.Position, current.Position, lerp);
-            print(current.Position);
+            //print(current.Position);
 
          
 
@@ -189,23 +193,27 @@ namespace DigitalRuby.AnimatedLineRenderer
             text = UItextGO.AddComponent<TextMesh>();
 
 
-            text.text = "O";
+            text.text = "●";
             text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-            text.fontSize = 28;
+            text.fontSize = 50;
             text.characterSize = 0.33f;
             text.anchor = TextAnchor.MiddleCenter;
             text.fontStyle = FontStyle.Bold;
-            text.color = Color.black;
+
+            Color color = new Color();
+            ColorUtility.TryParseHtmlString("#0000B4", out color);
+            text.color = color;
 
 
             l.txtLetraPunto = text;
 
             l.letra = letra;
             l.posicion = p;
+            l.alLetrasRelaciones = new List<Letra>();
             alLetras.Add(l);
 
 
-            l.txtLetra.color = Color.green;
+            //l.txtLetra.color = Color.green;
             l.txtLetraPunto.color = Color.green;
 
 
@@ -213,7 +221,10 @@ namespace DigitalRuby.AnimatedLineRenderer
 
         private void Start()
         {
+
+            hmRelaciones = new HashSet<string>();
             alLetras = new List<Letra>();
+            alLetrasHijas = new List<Letra>();
             lineRenderer = GetComponent<LineRenderer>();
             lineRenderer.SetVertexCount(0);
         }
@@ -282,6 +293,8 @@ namespace DigitalRuby.AnimatedLineRenderer
         public bool Enqueue(Vector3 pos, float duration)
         {
             bool cerrarGrafo = false;
+            bool pintar = true;
+            int ultimo = -1;
 
             for (int i = 0; i < alLetras.Count; i++)
             {
@@ -290,16 +303,81 @@ namespace DigitalRuby.AnimatedLineRenderer
 
                 if (Math.Abs(l.posicion.x - (pos.x)) < 1 && Math.Abs(l.posicion.y - (pos.y)) < 1)
                 {
-                    print(l.posicion.x);
+                    
                     cerrarGrafo = true;
+
+                   
+                   if ((lastLetra) >= 0)
+                   {
+                        //print(lastLetra);
+                        print(alLetras[lastLetra].letra +" -> " + alLetras[i].letra);
+
+                        if (!alLetras[lastLetra].alLetrasRelaciones.Contains(alLetras[i]))
+                            alLetras[lastLetra].alLetrasRelaciones.Add(alLetras[i]);
+                        if (!alLetras[i].alLetrasRelaciones.Contains(alLetras[lastLetra]))
+                            alLetras[i].alLetrasRelaciones.Add(alLetras[lastLetra]);
+
+
+
+                        if (!hmRelaciones.Contains(alLetras[lastLetra].letra + "" + alLetras[i].letra) && !hmRelaciones.Contains(alLetras[i].letra + "" + alLetras[lastLetra].letra))
+                            hmRelaciones.Add(alLetras[lastLetra].letra + "" + alLetras[i].letra);
+                        else
+                        {
+                            print("Ya esta2");
+                            pos = alLetras[i].posicion;
+
+                            ultimo = i;
+                            //return false;
+                        }
+                        //print(alLetras[i].letra);
+                    }
+
+                  
+
+                    /*
+
+                        for (int j = 0; j < alLetras.Count; j++)
+                        {
+                            if(alLetras[j].letra == alLetras[i].letra   && (lastLetra >= 0 && alLetras[j].letra != alLetras[lastLetra].letra) )
+                            {
+                                print(l.letra);
+                                print(alLetras[j].letra);
+                                if (lastLetra >= 0)
+                                {
+                                    print(alLetras[lastLetra].letra);
+                                    pintar = false;
+                                    //EndPoint = alLetras[j].posicion;
+                                    return pintar;
+                                }
+                            }
+                        }
+
+                        lastLetra = i;
+
+                    */
+                    lastLetra = i;
                 }
 
-                if(i < alLetras.Count-1)
+
+                for (int h = 0; h < alLetras.Count; h++)
                 {
-                    l.txtLetra.color = Color.black;
-                    l.txtLetraPunto.color = Color.black;
+                    alLetras[h].txtLetra.color = Color.black;
+
+                        Color color = new Color();
+                        ColorUtility.TryParseHtmlString("#0000B4", out color);
+                    alLetras[h].txtLetraPunto.color = color;
+                    
                 }
+
+                if (cerrarGrafo )
+                {
+                    l.txtLetraPunto.color = Color.green;
+                    break;
+                }
+
             }
+
+            
             
 
             /*
@@ -341,7 +419,34 @@ namespace DigitalRuby.AnimatedLineRenderer
             lastQueued = item;
 
             if (!cerrarGrafo) {
+
+
                 crearPivote(sigLetra++, pos);
+
+                if (lastLetra >= 0)
+                {
+                    print(alLetras[lastLetra].letra + " -> " + alLetras[alLetras.Count - 1].letra);
+
+                    if(!alLetras[lastLetra].alLetrasRelaciones.Contains(alLetras[alLetras.Count - 1]))
+                        alLetras[lastLetra].alLetrasRelaciones.Add(alLetras[alLetras.Count - 1]);
+                    if (!alLetras[alLetras.Count - 1].alLetrasRelaciones.Contains(alLetras[lastLetra]))
+                        alLetras[alLetras.Count - 1].alLetrasRelaciones.Add(alLetras[lastLetra]);
+
+                    if (!hmRelaciones.Contains(alLetras[lastLetra].letra + "" + alLetras[alLetras.Count - 1].letra) && !hmRelaciones.Contains(alLetras[alLetras.Count - 1].letra + "" + alLetras[lastLetra].letra))
+                        hmRelaciones.Add(alLetras[lastLetra].letra + "" + alLetras[alLetras.Count - 1].letra);
+                    else
+                    {
+                        print("Ya esta");
+                        //return false;
+                    }
+                }
+
+                
+
+                
+
+                lastLetra = alLetras.Count-1;
+
             }
             
 
