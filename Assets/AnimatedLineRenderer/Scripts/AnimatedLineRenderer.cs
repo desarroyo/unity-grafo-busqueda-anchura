@@ -40,6 +40,18 @@ namespace DigitalRuby.AnimatedLineRenderer
 
         public List<Letra> alLetras = null;
         public List<Letra> alLetrasHijas = null;
+        public List<LineRenderer> alLineas = null;
+
+        public List<GameObject> alTxtLetras = null;
+        public List<GameObject> alTxtLetrasPunto = null;
+        public GameObject lineaDinamica;
+
+        public float minX = 0;
+        public float maxX = 0;
+        public float minY = 0;
+        public float maxY = 0;
+
+
         private int sigLetra = 1;
 
         private int lastLetra = -1;
@@ -51,6 +63,7 @@ namespace DigitalRuby.AnimatedLineRenderer
             public TextMesh txtLetra;
             public TextMesh txtLetraPunto;
             public List<Letra> alLetrasRelaciones;
+            public List<LineRenderer> alLineas;
         }
 
         public struct QueueItem
@@ -150,7 +163,18 @@ namespace DigitalRuby.AnimatedLineRenderer
         private void crearPivote(int indice, Vector3 p)
         {
 
-            Letra l = new Letra();
+
+            if (p.x < minX)
+                minX = p.x;
+            if (p.x > maxX)
+                maxX = p.x;
+            if (p.y < minY)
+                minY = p.y;
+            if (p.y > maxY)
+                maxY = p.y;
+            
+
+        Letra l = new Letra();
             String letra = "v";
             if(indice > 0)
             {
@@ -178,6 +202,8 @@ namespace DigitalRuby.AnimatedLineRenderer
             text.anchor = TextAnchor.LowerRight;
             text.color = Color.black;
 
+            alTxtLetras.Add(UItextGO);
+
             l.txtLetra = text;
 
             /* Dibujar Punto*/
@@ -204,12 +230,15 @@ namespace DigitalRuby.AnimatedLineRenderer
             ColorUtility.TryParseHtmlString("#0000B4", out color);
             text.color = color;
 
+            alTxtLetrasPunto.Add(UItextGO);
+
 
             l.txtLetraPunto = text;
 
             l.letra = letra;
             l.posicion = p;
             l.alLetrasRelaciones = new List<Letra>();
+            l.alLineas = new List<LineRenderer>();
             alLetras.Add(l);
 
 
@@ -221,6 +250,9 @@ namespace DigitalRuby.AnimatedLineRenderer
 
         private void Start()
         {
+
+            alTxtLetras = new List<GameObject>();
+            alTxtLetrasPunto = new List<GameObject>();
 
             hmRelaciones = new HashSet<string>();
             alLetras = new List<Letra>();
@@ -305,9 +337,10 @@ namespace DigitalRuby.AnimatedLineRenderer
                 {
                     
                     cerrarGrafo = true;
+                    pos = alLetras[i].posicion;
 
-                   
-                   if ((lastLetra) >= 0)
+
+                    if ((lastLetra) >= 0)
                    {
                         //print(lastLetra);
                         print(alLetras[lastLetra].letra +" -> " + alLetras[i].letra);
