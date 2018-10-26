@@ -345,11 +345,15 @@ namespace DigitalRuby.AnimatedLineRenderer
                         //print(lastLetra);
                         print(alLetras[lastLetra].letra +" -> " + alLetras[i].letra);
 
-                        if (!alLetras[lastLetra].alLetrasRelaciones.Contains(alLetras[i]))
-                            alLetras[lastLetra].alLetrasRelaciones.Add(alLetras[i]);
-                        if (!alLetras[i].alLetrasRelaciones.Contains(alLetras[lastLetra]))
-                            alLetras[i].alLetrasRelaciones.Add(alLetras[lastLetra]);
+                        if (alLetras[lastLetra].letra != alLetras[i].letra)
+                        {
 
+                            if (!alLetras[lastLetra].alLetrasRelaciones.Contains(alLetras[i]))
+                                alLetras[lastLetra].alLetrasRelaciones.Add(alLetras[i]);
+                            if (!alLetras[i].alLetrasRelaciones.Contains(alLetras[lastLetra]))
+                                alLetras[i].alLetrasRelaciones.Add(alLetras[lastLetra]);
+
+                        }
 
 
                         if (!hmRelaciones.Contains(alLetras[lastLetra].letra + "" + alLetras[i].letra) && !hmRelaciones.Contains(alLetras[i].letra + "" + alLetras[lastLetra].letra))
@@ -460,10 +464,15 @@ namespace DigitalRuby.AnimatedLineRenderer
                 {
                     print(alLetras[lastLetra].letra + " -> " + alLetras[alLetras.Count - 1].letra);
 
-                    if(!alLetras[lastLetra].alLetrasRelaciones.Contains(alLetras[alLetras.Count - 1]))
-                        alLetras[lastLetra].alLetrasRelaciones.Add(alLetras[alLetras.Count - 1]);
-                    if (!alLetras[alLetras.Count - 1].alLetrasRelaciones.Contains(alLetras[lastLetra]))
-                        alLetras[alLetras.Count - 1].alLetrasRelaciones.Add(alLetras[lastLetra]);
+                    if (alLetras[lastLetra].letra != alLetras[alLetras.Count - 1].letra)
+                    {
+
+                        if (!alLetras[lastLetra].alLetrasRelaciones.Contains(alLetras[alLetras.Count - 1]))
+                            alLetras[lastLetra].alLetrasRelaciones.Add(alLetras[alLetras.Count - 1]);
+                        if (!alLetras[alLetras.Count - 1].alLetrasRelaciones.Contains(alLetras[lastLetra]))
+                            alLetras[alLetras.Count - 1].alLetrasRelaciones.Add(alLetras[lastLetra]);
+
+                    }
 
                     if (!hmRelaciones.Contains(alLetras[lastLetra].letra + "" + alLetras[alLetras.Count - 1].letra) && !hmRelaciones.Contains(alLetras[alLetras.Count - 1].letra + "" + alLetras[lastLetra].letra))
                         hmRelaciones.Add(alLetras[lastLetra].letra + "" + alLetras[alLetras.Count - 1].letra);

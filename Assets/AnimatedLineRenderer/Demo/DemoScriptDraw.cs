@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 namespace DigitalRuby.AnimatedLineRenderer
 {
@@ -11,12 +12,40 @@ namespace DigitalRuby.AnimatedLineRenderer
         private bool firing;
         private int currentFiring = 0;
         public int currentPaso = 0;
+        public int currentPasoArbol = 0;
         public int currentLetra = 0;
+        public GameObject areaArbol;
+        public GameObject areaCola;
+        public GameObject titulo;
+        public List<AnimatedLineRenderer.Letra> alLetrasArbol = null;
+        public List<AnimatedLineRenderer.Letra> alLetrasCola = null;
+        public List<AnimatedLineRenderer.Letra> alLetrasColaTache = null;
+        public List<AnimatedLineRenderer.Letra> alCola = null;
+        private int currentCola = 0;
 
         private bool stop = false;
 
+        Color colorAzul = new Color();
+        Color colorVerde = new Color();
+        Color colorDarkGray = new Color();
+        float posIni = -2f;
+
+        Vector3 posIniArbol = new Vector3(0f, 0f);
+        Vector3 posIniCola = new Vector3(0f, 0f);
+
+
         private void Start()
         {
+
+            ColorUtility.TryParseHtmlString("#009688", out colorVerde);
+            ColorUtility.TryParseHtmlString("#0000B4", out colorAzul);
+            ColorUtility.TryParseHtmlString("#455A64", out colorDarkGray);
+
+            alLetrasArbol = new List<AnimatedLineRenderer.Letra>();
+            alLetrasCola = new List<AnimatedLineRenderer.Letra>();
+            alLetrasColaTache = new List<AnimatedLineRenderer.Letra>();
+            alCola = new List<AnimatedLineRenderer.Letra>();
+
 
         }
 
@@ -145,41 +174,285 @@ namespace DigitalRuby.AnimatedLineRenderer
 
         }
 
+        static int SortByTxtLetra(AnimatedLineRenderer.Letra l1, AnimatedLineRenderer.Letra l2)
+        {
+            return l1.letra.CompareTo(l2.letra);
+        }
 
 
-        IEnumerator muestraLineasLetra(AnimatedLineRenderer.Letra letra)
+        IEnumerator muestraLineasLetra(AnimatedLineRenderer.Letra letra, int current)
         {
             print(Time.time);
+
+            letra.alLetrasRelaciones.Sort(SortByTxtLetra);
+
             for (int h = 0; h < letra.alLineas.Count; h++)
             {
                 print("     ->" + letra.alLetrasRelaciones[h].letra);
 
-                letra.alLineas[h].enabled = true;
+                letra.txtLetraPunto.color = Color.green;
                 yield return new WaitForSeconds(0.6f);
+                letra.alLineas[h].enabled = true;
+
+                /* Dibujar Letra*/
+                GameObject UItextGO = new GameObject("y" + h);
+                UItextGO.transform.SetParent(this.transform);
+
+                RectTransform trans = UItextGO.AddComponent<RectTransform>();
+                trans.anchoredPosition = new Vector2(-16.5f + (current * 1f), posIni - ((h + 1) * 1f));
+
+                //Text text = UItextGO.AddComponent<Text>();
+
+                // TextMesh textMesh = new TextMesh();
+                TextMesh text = UItextGO.AddComponent<TextMesh>();
+
+
+                text.text = letra.alLetrasRelaciones[h].letra;
+                text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                text.fontSize = 20;
+                text.characterSize = 0.33f;
+                text.anchor = TextAnchor.LowerRight;
+                text.color = colorDarkGray;
+
             }
 
-            
+
             print(Time.time);
         }
 
-        public void OnButtonLetra()
+
+        IEnumerator muestraLineasArbol(AnimatedLineRenderer.Letra letra, int current)
+        {
+            print(Time.time);
+            print(letra.letra);
+            yield return new WaitForSeconds(0.6f);
+
+            if (current == 0)
+            {
+
+                alLetrasCola[current].txtLetra.text = letra.letra;
+                alCola.Add(letra);
+                
+
+
+                /* Dibujar Letra*/
+                GameObject UItextGO = new GameObject("a_" + letra.letra);
+                UItextGO.transform.SetParent(areaArbol.transform);
+
+                RectTransform trans = UItextGO.AddComponent<RectTransform>();
+                trans.anchoredPosition = posIniArbol;
+
+                //Text text = UItextGO.AddComponent<Text>();
+
+                // TextMesh textMesh = new TextMesh();
+                TextMesh text = UItextGO.AddComponent<TextMesh>();
+
+
+                text.text = letra.letra;
+                text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                text.fontSize = 20;
+                text.characterSize = 0.33f;
+                text.anchor = TextAnchor.LowerRight;
+                text.color = colorDarkGray;
+
+
+                AnimatedLineRenderer.Letra l = new AnimatedLineRenderer.Letra();
+
+                l.letra = letra.letra;
+                l.txtLetra = text;
+                l.posicion = text.transform.position;
+
+                alLetrasArbol.Add(l);
+            }
+
+            else
+            {
+
+                float separacionX = 2.2f;
+                float separacionY = 2.0f;
+
+                for (int h = 0; h < letra.alLetrasRelaciones.Count; h++)
+                {
+                    print("     ->" + letra.alLetrasRelaciones[h].letra);
+
+                    yield return new WaitForSeconds(0.6f);
+
+                    if (alCola.Contains(letra.alLetrasRelaciones[h]))
+                    {
+                        continue;
+                    }
+                        
+
+                    /* Dibujar Letra*/
+                    GameObject UItextGO = new GameObject("y" + h);
+                    UItextGO.transform.SetParent(areaArbol.transform);
+
+                    RectTransform trans = UItextGO.AddComponent<RectTransform>();
+                    trans.anchoredPosition = new Vector2((-(letra.alLetrasRelaciones.Count * separacionX) * 0.5f) + (h * separacionX) + (separacionX * 0.5f), posIniArbol.y - (current * 0.5f) - separacionY);
+
+                    //Text text = UItextGO.AddComponent<Text>();
+
+                    // TextMesh textMesh = new TextMesh();
+                    TextMesh text = UItextGO.AddComponent<TextMesh>();
+
+
+                    text.text = letra.alLetrasRelaciones[h].letra;
+                    text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                    text.fontSize = 20;
+                    text.characterSize = 0.33f;
+                    text.anchor = TextAnchor.LowerRight;
+                    text.color = colorDarkGray;
+
+                    AnimatedLineRenderer.Letra l = new AnimatedLineRenderer.Letra();
+
+                    l.letra = letra.letra;
+                    l.txtLetra = text;
+                    l.posicion = text.transform.position;
+
+                    alLetrasArbol.Add(l);
+
+                    alLetrasCola[alCola.Count].txtLetra.text = letra.alLetrasRelaciones[h].letra;
+                    alCola.Add(letra.alLetrasRelaciones[h]);
+
+                }
+                alLetrasCola[currentCola].txtLetraPunto.text = "X";
+                currentCola++;
+
+            }
+            print(Time.time);
+        }
+
+        public void OnButtonArbol()
+        {
+
+            try
+            {
+                if(currentPasoArbol == 0)
+                {
+                    StartCoroutine(muestraLineasArbol(AnimatedLine.alLetras[currentPasoArbol], currentPasoArbol));
+                }
+                else
+                {
+                    StartCoroutine(muestraLineasArbol(alCola[currentCola], currentPasoArbol));
+                }
+                
+
+                currentPasoArbol++;
+            }
+            catch (Exception ex) { }
+            
+        }
+
+            public void OnButtonLetra()
         {
             limpiarSeleccionLinea();
             try
             {
-                StartCoroutine(muestraLineasLetra(AnimatedLine.alLetras[currentLetra]));
+                StartCoroutine(muestraLineasLetra(AnimatedLine.alLetras[currentLetra], currentLetra));
 
                 currentLetra++;
             }
-            catch (Exception ex) { }
+            catch (Exception ex) {
+
+                contruyeCola();
+            }
         }
 
-            public void OnButton()
+        private void contruyeCola()
+        {
+
+            for (int h = 0; h < AnimatedLine.alLetras.Count; h++)
+            {
+                print("     ->" + AnimatedLine.alLetras[h].letra);
+
+                ////yield return new WaitForSeconds(0.6f);
+                //letra.alLineas[h].enabled = true;
+
+                /* Dibujar Letra*/
+                GameObject UItextGO = new GameObject("cola_" + h);
+                UItextGO.transform.SetParent(areaCola.transform);
+
+                RectTransform trans = UItextGO.AddComponent<RectTransform>();
+                trans.anchoredPosition = new Vector2(posIniCola.x + (h * 1f), posIniCola.y);
+
+                //Text text = UItextGO.AddComponent<Text>();
+
+                // TextMesh textMesh = new TextMesh();
+                TextMesh text = UItextGO.AddComponent<TextMesh>();
+
+
+                text.text = "_";
+                text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                text.fontSize = 20;
+                text.characterSize = 0.33f;
+                text.anchor = TextAnchor.MiddleCenter;
+                text.color = Color.black;
+
+
+                UItextGO = new GameObject("colaT_" + h);
+                UItextGO.transform.SetParent(areaCola.transform);
+
+                trans = UItextGO.AddComponent<RectTransform>();
+                trans.anchoredPosition = new Vector2(posIniCola.x + (h * 1f), posIniCola.y);
+
+                //Text text = UItextGO.AddComponent<Text>();
+
+                // TextMesh textMesh = new TextMesh();
+                TextMesh text2 = UItextGO.AddComponent<TextMesh>();
+
+
+                text2.text = "";
+                text2.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                text2.fontSize = 28;
+                text2.characterSize = 0.33f;
+                text2.anchor = TextAnchor.MiddleCenter;
+                Color cda = colorAzul;
+                cda.a = 0.4f;
+                text2.color = cda;
+
+
+                AnimatedLineRenderer.Letra l = new AnimatedLineRenderer.Letra();
+
+                l.letra = ""+h;
+                l.txtLetra = text;
+                l.txtLetraPunto = text2;
+                l.posicion = text.transform.position;
+
+                alLetrasCola.Add(l);
+
+
+
+                UItextGO = new GameObject("colaCUADRO_" + h);
+                UItextGO.transform.SetParent(areaCola.transform);
+
+                trans = UItextGO.AddComponent<RectTransform>();
+                trans.anchoredPosition = new Vector2(posIniCola.x + (h * 1f), posIniCola.y + 0.22f);
+
+                //Text text = UItextGO.AddComponent<Text>();
+
+                // TextMesh textMesh = new TextMesh();
+                text2 = UItextGO.AddComponent<TextMesh>();
+
+
+                text2.text = "□";
+                text2.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                text2.fontSize = 70;
+                text2.characterSize = 0.33f;
+                text2.anchor = TextAnchor.MiddleCenter;
+                text2.color = colorAzul;
+
+            }
+
+           // alLetrasCola.Add();
+        }
+
+        public void OnButton()
         {
 
             if (!stop)
             {
                 stop = true;
+                titulo.SetActive(false);
                 
             }
             
@@ -240,16 +513,12 @@ namespace DigitalRuby.AnimatedLineRenderer
 
 
 
-                    Color colorAzul = new Color();
-                    ColorUtility.TryParseHtmlString("#0000B4", out colorAzul);
-
-                    Color colorVerde = new Color();
-                    ColorUtility.TryParseHtmlString("#009688", out colorVerde);
+                    
 
                     for (int i = 0; i < AnimatedLine.alTxtLetras.Count; i++)
                     {
-                        AnimatedLine.alTxtLetras[i].transform.localScale = new Vector3(2F, 2F, 0);
-                        AnimatedLine.alTxtLetrasPunto[i].transform.localScale = new Vector3(2F, 2F, 0);
+                        AnimatedLine.alTxtLetras[i].transform.localScale = new Vector3(1.5F, 1.5F, 0);
+                        AnimatedLine.alTxtLetrasPunto[i].transform.localScale = new Vector3(1.5F, 1.5F, 0);
 
                         if (i == 0)
                         {
@@ -281,8 +550,7 @@ namespace DigitalRuby.AnimatedLineRenderer
 
 
 
-
-                    float posIni = -2f;
+                    
 
 
 
@@ -310,28 +578,28 @@ namespace DigitalRuby.AnimatedLineRenderer
                         text.color = Color.black;
 
 
-                        for (int j = 0; j < AnimatedLine.alLetras[i].alLetrasRelaciones.Count; j++)
-                        {
-                            /* Dibujar Letra*/
-                            UItextGO = new GameObject("y" + j);
-                            UItextGO.transform.SetParent(this.transform);
+                        //for (int j = 0; j < AnimatedLine.alLetras[i].alLetrasRelaciones.Count; j++)
+                        //{
+                        //    /* Dibujar Letra*/
+                        //    UItextGO = new GameObject("y" + j);
+                        //    UItextGO.transform.SetParent(this.transform);
 
-                            trans = UItextGO.AddComponent<RectTransform>();
-                            trans.anchoredPosition = new Vector2(-16.5f + (i * 1f), posIni - ((j + 1) * 1f));
+                        //    trans = UItextGO.AddComponent<RectTransform>();
+                        //    trans.anchoredPosition = new Vector2(-16.5f + (i * 1f), posIni - ((j + 1) * 1f));
 
-                            //Text text = UItextGO.AddComponent<Text>();
+                        //    //Text text = UItextGO.AddComponent<Text>();
 
-                            // TextMesh textMesh = new TextMesh();
-                            text = UItextGO.AddComponent<TextMesh>();
+                        //    // TextMesh textMesh = new TextMesh();
+                        //    text = UItextGO.AddComponent<TextMesh>();
 
 
-                            text.text = AnimatedLine.alLetras[i].alLetrasRelaciones[j].letra;
-                            text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-                            text.fontSize = 20;
-                            text.characterSize = 0.33f;
-                            text.anchor = TextAnchor.LowerRight;
-                            text.color = Color.grey;
-                        }
+                        //    text.text = AnimatedLine.alLetras[i].alLetrasRelaciones[j].letra;
+                        //    text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                        //    text.fontSize = 20;
+                        //    text.characterSize = 0.33f;
+                        //    text.anchor = TextAnchor.LowerRight;
+                        //    text.color = Color.grey;
+                        //}
 
                     }
 
@@ -356,6 +624,8 @@ namespace DigitalRuby.AnimatedLineRenderer
             for (int i = 0; i < AnimatedLine.alLetras.Count; i++)
             {
                 print("-> " + AnimatedLine.alLetras[i].letra);
+
+                AnimatedLine.alLetras[i].txtLetraPunto.color = colorAzul;
 
                 for (int h = 0; h < AnimatedLine.alLetras[i].alLineas.Count; h++)
                 {
