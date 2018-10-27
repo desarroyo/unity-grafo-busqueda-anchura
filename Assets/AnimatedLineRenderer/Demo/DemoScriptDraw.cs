@@ -21,6 +21,10 @@ namespace DigitalRuby.AnimatedLineRenderer
         public List<AnimatedLineRenderer.Letra> alLetrasCola = null;
         public List<AnimatedLineRenderer.Letra> alLetrasColaTache = null;
         public List<AnimatedLineRenderer.Letra> alCola = null;
+        public Dictionary<String, List<TextMesh>> hmLetrasTabla = null;
+        public Dictionary<String, Vector3> hmLetrasArbolPosicion = null;
+
+        public GameObject lineaDinamicaArbol;
         private int currentCola = 0;
 
         private bool stop = false;
@@ -45,7 +49,8 @@ namespace DigitalRuby.AnimatedLineRenderer
             alLetrasCola = new List<AnimatedLineRenderer.Letra>();
             alLetrasColaTache = new List<AnimatedLineRenderer.Letra>();
             alCola = new List<AnimatedLineRenderer.Letra>();
-
+            hmLetrasTabla = new Dictionary<string, List<TextMesh>>();
+            hmLetrasArbolPosicion = new Dictionary<string, Vector3>();
 
         }
 
@@ -59,13 +64,13 @@ namespace DigitalRuby.AnimatedLineRenderer
             float endWidth = 0.00f;
             Color c1 = Color.green;
             Color c2 = Color.green;
-           // c1 = new Color(c1.r, c1.g, c1.b, 0.3f);
+            // c1 = new Color(c1.r, c1.g, c1.b, 0.3f);
             // c2 = new Color(c2.r, c2.g, c2.b, 0.3f);
 
             int lengthOfLineRenderer = 2;
 
             float t = Time.time;
-            GameObject lineaObject = new GameObject("_"+ letra.letra+""+letraRelacion.letra);
+            GameObject lineaObject = new GameObject("_" + letra.letra + "" + letraRelacion.letra);
             lineaObject.transform.parent = AnimatedLine.lineaDinamica.transform;
             LineRenderer lineRenderer = lineaObject.AddComponent<LineRenderer>();
             lineRenderer.startWidth = 2.00f;
@@ -106,6 +111,69 @@ namespace DigitalRuby.AnimatedLineRenderer
             */
         }
 
+
+        public void DrawManual2(AnimatedLineRenderer.Letra letra, AnimatedLineRenderer.Letra letraRelacion, Vector3 source, Vector3 target)
+        {
+
+            
+
+            //8.82
+            //7.05
+
+            LineRenderer line;
+            float startWidth = 0.00f;
+            float endWidth = 0.00f;
+            Color c1 = Color.cyan;
+            Color c2 = Color.cyan;
+            // c1 = new Color(c1.r, c1.g, c1.b, 0.3f);
+            // c2 = new Color(c2.r, c2.g, c2.b, 0.3f);
+
+            int lengthOfLineRenderer = 2;
+
+            float t = Time.time;
+            GameObject lineaObject = new GameObject("__" + letra.letra + "" + letraRelacion.letra);
+            lineaObject.transform.parent = lineaDinamicaArbol.transform;
+            LineRenderer lineRenderer = lineaObject.AddComponent<LineRenderer>();
+            lineRenderer.startWidth = 1.00f;
+            lineRenderer.endWidth = 1.00f;
+            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.widthMultiplier = 0.2f;
+            lineRenderer.positionCount = lengthOfLineRenderer;
+            lineRenderer.useWorldSpace = false;
+            //lineRenderer.transform.localScale = new Vector3(1.0F, 1.0F, 0);
+            lineRenderer.sortingOrder = -10;
+
+            // A simple 2 color gradient with a fixed alpha of 1.0f.
+            float alpha = 0.6f;
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(
+                new GradientColorKey[] { new GradientColorKey(c1, 0.0f), new GradientColorKey(c2, 1.0f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(alpha, 0.0f), new GradientAlphaKey(alpha, 1.0f) }
+                );
+            lineRenderer.colorGradient = gradient;
+
+
+            lineRenderer.SetPosition(0, source);
+            lineRenderer.SetPosition(1, target);
+
+            //lineaDinamicaArbol.transform.position = new Vector3(areaArbol.transform.position.x, areaArbol.transform.position.y);
+
+
+            //letra.alLineas.Add(lineRenderer);
+
+
+
+            //LineRenderer lineRenderer = GetComponent<LineRenderer>();
+            /*
+            for (int i = 0; i < lengthOfLineRenderer; i++)
+            {
+                //StartCoroutine(LateStartLine(0.3f*i, lineRenderer, i, t, source, target));
+                //StopCoroutine("LateStartLine");
+
+            }
+            */
+        }
+
         /*
         IEnumerator LateStartLine(float waitTime, LineRenderer lineRenderer, int i, float t, Vector3 source, Vector3 target)
         {
@@ -116,7 +184,7 @@ namespace DigitalRuby.AnimatedLineRenderer
             
         }
         */
-            IEnumerator LateStart(float waitTime)
+        IEnumerator LateStart(float waitTime)
         {
 
             
@@ -214,6 +282,18 @@ namespace DigitalRuby.AnimatedLineRenderer
                 text.anchor = TextAnchor.LowerRight;
                 text.color = colorDarkGray;
 
+                //alLetrasTabla
+                if (!hmLetrasTabla.ContainsKey(letra.alLetrasRelaciones[h].letra))
+                {
+                    List<TextMesh> alT = new List<TextMesh>();
+                    alT.Add(text);
+                    hmLetrasTabla.Add(letra.alLetrasRelaciones[h].letra, alT);
+                }
+                else
+                {
+                    hmLetrasTabla[letra.alLetrasRelaciones[h].letra].Add(text);
+                }
+
             }
 
 
@@ -232,15 +312,15 @@ namespace DigitalRuby.AnimatedLineRenderer
 
                 alLetrasCola[current].txtLetra.text = letra.letra;
                 alCola.Add(letra);
-                
 
 
-                /* Dibujar Letra*/
-                GameObject UItextGO = new GameObject("a_" + letra.letra);
+
+                /* Dibujar Punto*/
+                GameObject UItextGO = new GameObject(letra.letra + "-OO");
                 UItextGO.transform.SetParent(areaArbol.transform);
 
                 RectTransform trans = UItextGO.AddComponent<RectTransform>();
-                trans.anchoredPosition = posIniArbol;
+                trans.anchoredPosition = new Vector3(posIniArbol.x - 0.18f, posIniArbol.y + 0.41f, 20f);
 
                 //Text text = UItextGO.AddComponent<Text>();
 
@@ -248,13 +328,39 @@ namespace DigitalRuby.AnimatedLineRenderer
                 TextMesh text = UItextGO.AddComponent<TextMesh>();
 
 
+                text.text = "●";
+                text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                text.fontSize = 55;
+                text.characterSize = 0.33f;
+                text.anchor = TextAnchor.MiddleCenter;
+                text.fontStyle = FontStyle.Bold;
+                text.color = colorAzul;
+
+
+                /* Dibujar Letra*/
+                 UItextGO = new GameObject("a_" + letra.letra);
+                UItextGO.transform.SetParent(areaArbol.transform);
+
+                 trans = UItextGO.AddComponent<RectTransform>();
+                trans.anchoredPosition = posIniArbol;
+
+                //Text text = UItextGO.AddComponent<Text>();
+
+                // TextMesh textMesh = new TextMesh();
+                 text = UItextGO.AddComponent<TextMesh>();
+
+
                 text.text = letra.letra;
                 text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
                 text.fontSize = 20;
                 text.characterSize = 0.33f;
                 text.anchor = TextAnchor.LowerRight;
-                text.color = colorDarkGray;
+                text.color = Color.white;
 
+
+              
+
+                hmLetrasArbolPosicion.Add(letra.letra, trans.anchoredPosition);
 
                 AnimatedLineRenderer.Letra l = new AnimatedLineRenderer.Letra();
 
@@ -263,14 +369,60 @@ namespace DigitalRuby.AnimatedLineRenderer
                 l.posicion = text.transform.position;
 
                 alLetrasArbol.Add(l);
+
+
+                for (int k = 0; k < hmLetrasTabla[letra.letra].Count; k++)
+                {
+                    //hmLetrasTabla[letra.letra][k].color = Color.red;
+
+                    /* Dibujar Letra*/
+                    UItextGO = new GameObject("a_" + letra.letra);
+                    UItextGO.transform.SetParent(this.transform);
+
+                    trans = UItextGO.AddComponent<RectTransform>();
+                    trans.anchoredPosition = new Vector3(hmLetrasTabla[letra.letra][k].transform.position.x, hmLetrasTabla[letra.letra][k].transform.position.y - 0.12f);
+
+                    //Text text = UItextGO.AddComponent<Text>();
+
+                    // TextMesh textMesh = new TextMesh();
+                    text = UItextGO.AddComponent<TextMesh>();
+
+
+                    text.text = "x";
+                    text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                    text.fontSize = 28;
+                    text.characterSize = 0.33f;
+                    text.anchor = TextAnchor.LowerRight;
+                    Color ca = colorAzul;
+                    ca.a = 0.3f;
+                    text.color = ca;
+                }
+
+
             }
 
             else
             {
 
-                float separacionX = 2.2f;
+                float separacionX = 2.5f;
                 float separacionY = 2.0f;
 
+                int contAplican = 0;
+                int currentAplican = 0;
+
+                for (int h = 0; h < letra.alLetrasRelaciones.Count; h++)
+                {
+                    if (alCola.Contains(letra.alLetrasRelaciones[h]))
+                    {
+                        continue;
+                    }
+                    contAplican++;
+
+                }
+
+                lineaDinamicaArbol.transform.position = new Vector3(0f, 0f);
+                lineaDinamicaArbol.SetActive(false);
+                separacionX = separacionX + (hmLetrasArbolPosicion[letra.letra].y * (separacionY)) / 6;
                 for (int h = 0; h < letra.alLetrasRelaciones.Count; h++)
                 {
                     print("     ->" + letra.alLetrasRelaciones[h].letra);
@@ -281,27 +433,93 @@ namespace DigitalRuby.AnimatedLineRenderer
                     {
                         continue;
                     }
-                        
+                    
+                    GameObject UItextGO;
+                    RectTransform trans;
+                    TextMesh text;
 
-                    /* Dibujar Letra*/
-                    GameObject UItextGO = new GameObject("y" + h);
+                    for (int k = 0; k < hmLetrasTabla[letra.alLetrasRelaciones[h].letra].Count; k++)
+                    {
+                        //hmLetrasTabla[letra.alLetrasRelaciones[h].letra][k].color = Color.red;
+                        /* Dibujar Letra*/
+                        UItextGO = new GameObject("a_" + letra.letra);
+                        UItextGO.transform.SetParent(this.transform);
+
+                        trans = UItextGO.AddComponent<RectTransform>();
+                        trans.anchoredPosition = new Vector3(hmLetrasTabla[letra.alLetrasRelaciones[h].letra][k].transform.position.x, hmLetrasTabla[letra.alLetrasRelaciones[h].letra][k].transform.position.y - 0.12f);
+
+                        //Text text = UItextGO.AddComponent<Text>();
+
+                        // TextMesh textMesh = new TextMesh();
+                        text = UItextGO.AddComponent<TextMesh>();
+
+
+                        text.text = "x";
+                        text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                        text.fontSize = 28;
+                        text.characterSize = 0.33f;
+                        text.anchor = TextAnchor.LowerRight;
+                        Color ca = colorAzul;
+                        ca.a = 0.3f;
+                        text.color = ca;
+                    }
+
+                    LineRenderer lr =  GameObject.Find("_" + letra.letra + letra.alLetrasRelaciones[h].letra).GetComponent<LineRenderer>();
+
+                    if(lr != null)
+                    lr.enabled = true;
+
+                    
+
+
+                    /* Dibujar Punto*/
+                    UItextGO = new GameObject(letra.letra + "-OO");
                     UItextGO.transform.SetParent(areaArbol.transform);
 
-                    RectTransform trans = UItextGO.AddComponent<RectTransform>();
-                    trans.anchoredPosition = new Vector2((-(letra.alLetrasRelaciones.Count * separacionX) * 0.5f) + (h * separacionX) + (separacionX * 0.5f), posIniArbol.y - (current * 0.5f) - separacionY);
+                    trans = UItextGO.AddComponent<RectTransform>();
+                    
+                    //trans.anchoredPosition = new Vector2((hmLetrasArbolPosicion[letra.letra].x - (contAplican * separacionX) * 0.5f) + (currentAplican * separacionX) + (separacionX * 0.5f) - 0.18f, hmLetrasArbolPosicion[letra.letra].y - (separacionY) + 0.43f);
+                    trans.anchoredPosition = new Vector2((hmLetrasArbolPosicion[letra.letra].x - (contAplican * separacionX) * 0.5f) + (currentAplican * separacionX) + (separacionX * 0.5f), hmLetrasArbolPosicion[letra.letra].y - (separacionY) + 0.04f);
 
                     //Text text = UItextGO.AddComponent<Text>();
 
                     // TextMesh textMesh = new TextMesh();
-                    TextMesh text = UItextGO.AddComponent<TextMesh>();
+                    text = UItextGO.AddComponent<TextMesh>();
+
+
+                    text.text = "●";
+                    text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                    text.fontSize = 60;
+                    text.characterSize = 0.33f;
+                    text.anchor = TextAnchor.MiddleCenter;
+                    text.fontStyle = FontStyle.Bold;
+                    text.color = colorAzul;
+
+
+                    /* Dibujar Letra*/
+                    UItextGO = new GameObject("y" + h);
+                    UItextGO.transform.SetParent(areaArbol.transform);
+
+                    trans = UItextGO.AddComponent<RectTransform>();
+                    
+                    trans.anchoredPosition = new Vector2((hmLetrasArbolPosicion[letra.letra].x - (contAplican * separacionX) * 0.5f) + (currentAplican * separacionX) + (separacionX * 0.5f), hmLetrasArbolPosicion[letra.letra].y - (separacionY));
+
+                    //Text text = UItextGO.AddComponent<Text>();
+
+                    // TextMesh textMesh = new TextMesh();
+                    text = UItextGO.AddComponent<TextMesh>();
 
 
                     text.text = letra.alLetrasRelaciones[h].letra;
                     text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
                     text.fontSize = 20;
                     text.characterSize = 0.33f;
-                    text.anchor = TextAnchor.LowerRight;
-                    text.color = colorDarkGray;
+                    text.anchor = TextAnchor.MiddleCenter;
+                    text.color = Color.white;
+
+                    hmLetrasArbolPosicion.Add(letra.alLetrasRelaciones[h].letra, trans.anchoredPosition);
+                    //letra.alLetrasRelaciones[h].posicionArbol.Set(text.transform.position.x, text.transform.position.y, text.transform.position.z);
+
 
                     AnimatedLineRenderer.Letra l = new AnimatedLineRenderer.Letra();
 
@@ -314,7 +532,15 @@ namespace DigitalRuby.AnimatedLineRenderer
                     alLetrasCola[alCola.Count].txtLetra.text = letra.alLetrasRelaciones[h].letra;
                     alCola.Add(letra.alLetrasRelaciones[h]);
 
+                    DrawManual2(letra, letra.alLetrasRelaciones[h], hmLetrasArbolPosicion[letra.letra], trans.anchoredPosition);
+
+                    currentAplican++;
+
                 }
+
+                lineaDinamicaArbol.transform.position = new Vector3(areaArbol.transform.position.x, areaArbol.transform.position.y);
+                lineaDinamicaArbol.SetActive(true);
+
                 alLetrasCola[currentCola].txtLetraPunto.text = "X";
                 currentCola++;
 

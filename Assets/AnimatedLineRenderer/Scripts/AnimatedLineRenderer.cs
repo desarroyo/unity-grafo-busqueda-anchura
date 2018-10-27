@@ -60,6 +60,7 @@ namespace DigitalRuby.AnimatedLineRenderer
         {
             public String letra;
             public Vector3 posicion;
+            public Vector3 posicionArbol;
             public TextMesh txtLetra;
             public TextMesh txtLetraPunto;
             public List<Letra> alLetrasRelaciones;
